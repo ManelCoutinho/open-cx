@@ -14,7 +14,6 @@ import 'CardTemplate.dart';
 import 'CustomDialog.dart';
 import 'CustomPopupMenu.dart';
 import 'UserAvatar.dart';
-import 'CustomSlideAction.dart';
 
 class QuestionCard extends CardTemplate {
     final bool _clickable;
