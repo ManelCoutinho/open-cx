@@ -105,6 +105,31 @@ class AnswersPageState extends State<AnswersPage> implements ModelListener {
     );
   }
 
+  answerWithDismiss(Answer answer) {
+    if (widget._dbcontroller.getCurrentUser() == answer.user) {
+      return Dismissible(
+        key: Key(answer.content),
+        onDismissed: (direction) async {
+          await widget._dbcontroller.deleteAnswer(answer);
+          refreshModel(true);
+        },
+        background: Container(
+          alignment: Alignment.centerRight,
+          padding: EdgeInsets.fromLTRB(0, 0, 30, 0),
+          color: Colors.red,
+          child: IconButton(
+            icon: Icon(Icons.delete),
+            iconSize: 30,
+          ),
+        ),
+        direction: DismissDirection.endToStart,
+        child: AnswerCard(this, answer, widget._question.user, widget._dbcontroller),
+      );
+    } else {
+      return AnswerCard(this, answer, widget._question.user, widget._dbcontroller);
+    }
+  }
+
   Widget answerList(Question question) {
     if (answers.length == 0 && !this.showLoadingIndicator)
       return CenterText("This human needs assistance!\nLet's help him! 😃", textScale: 1.25);
@@ -117,7 +142,7 @@ class AnswersPageState extends State<AnswersPage> implements ModelListener {
               decoration: BoxDecoration(border: BorderLeft(borderColors[i % borderColors.length], 4.0)),
               child: Column(
                 children: <Widget>[
-                  AnswerCard(this, answers[i], widget._question.user, widget._dbcontroller),
+                  answerWithDismiss(answers[i]),
                   Divider(color: CardTemplate.shadowColor(context), thickness: 1.0, height: 1.0),
                 ],
               )
