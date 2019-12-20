@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 
 import '../../../../Model/Question.dart';
 import '../../../../Model/Talk.dart';
@@ -82,7 +83,6 @@ class QuestionsPageState extends State<QuestionsPage> implements ModelListener {
     );
   }
 
-
   Widget questionList() {
     if (questions.length == 0 && !this.showLoadingIndicator)
       return _emptyQuestionList();
@@ -96,7 +96,7 @@ class QuestionsPageState extends State<QuestionsPage> implements ModelListener {
           return Container(
               decoration: ShadowDecoration(shadowColor: CardTemplate.shadowColor(context), spreadRadius: 1.0, offset: Offset(0, 1)),
               margin: EdgeInsets.only(top: 10.0),
-              child: QuestionCard(this, this.questions[i - 1], true, widget._dbcontroller)
+              child: QuestionCard(this, this.questions[i-1], true, widget._dbcontroller)
           );
         }
     );

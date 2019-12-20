@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 
 import '../../../../Model/Question.dart';
 import '../../../../Model/User.dart';
@@ -13,6 +14,7 @@ import 'CardTemplate.dart';
 import 'CustomDialog.dart';
 import 'CustomPopupMenu.dart';
 import 'UserAvatar.dart';
+import 'CustomSlideAction.dart';
 
 class QuestionCard extends CardTemplate {
     final bool _clickable;
@@ -47,9 +49,87 @@ class QuestionCard extends CardTemplate {
       CustomPopupMenu.show(context, items: items, actions: actions);
     }
 
-
     @override
   Widget buildCardContent(BuildContext context) {
+      if (_dbcontroller.getCurrentUser() == _question.user ||
+          _dbcontroller.isAdmin()) {
+        return Slidable(
+          actionPane: SlidableScrollActionPane(),
+          actionExtentRatio: 0.25,
+          child: buildCard(context),
+          secondaryActions: <Widget>[
+            // ignore: sdk_version_ui_as_code
+            /*if (!_question.answered) IconSlideAction(caption: 'Answered', color: Colors.blue, icon: Icons.check, onTap: () => markQuestion(context),),
+            IconSlideAction(
+              caption: 'Edit',
+              color: Colors.indigo,
+              icon: Icons.edit,
+              onTap: () => editQuestion(context),
+            ),
+            IconSlideAction(
+              caption: 'Delete',
+              color: Colors.red,
+              icon: Icons.delete,
+              onTap: () => deleteQuestion(context),
+            ),*/
+            if(!_question.answered)SlideAction(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.green,
+                  shape: BoxShape.circle,
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(6.0),
+                  child: Icon(
+                      Icons.check,
+                      color: Colors.white,
+                      size: 30
+                  ),
+                ),
+              ),
+              onTap: () => markQuestion(context),
+            ),
+            SlideAction(
+              child: Container(
+                padding: EdgeInsets.all(0),
+                decoration: BoxDecoration(
+                  color: Color(0xFFFFBF00),
+                  shape: BoxShape.circle,
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(6.0),
+                  child: Icon(
+                      Icons.edit,
+                      color: Colors.white,
+                      size: 30
+                  ),
+                ),
+              ),
+              onTap: () => editQuestion(context),
+            ),
+            SlideAction(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.red,
+                  shape: BoxShape.circle,
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(6.0),
+                  child: Icon(
+                      Icons.delete,
+                      color: Colors.white,
+                      size: 30
+                  ),
+                ),
+              ),
+              onTap: () => deleteQuestion(context),
+            ),
+          ],);
+      }
+      return buildCard(context);
+    }
+
+  Widget buildCard(BuildContext context){
     return Row(
         children: <Widget>[
           Expanded(
@@ -60,11 +140,11 @@ class QuestionCard extends CardTemplate {
                     Visibility(
                       visible: this._question.answered,
                       child: Container(
-                        padding: EdgeInsets.only(bottom: 7.5),
-                        child: Row(children: <Widget>[
-                          Text("Answered ", style: Theme.of(context).textTheme.body1.copyWith(color: Colors.green.shade700)),
-                          Icon(Icons.check, size: 16, color: Colors.green.shade700),
-                        ])
+                          padding: EdgeInsets.only(bottom: 7.5),
+                          child: Row(children: <Widget>[
+                            Text("Answered ", style: Theme.of(context).textTheme.body1.copyWith(color: Colors.green.shade700)),
+                            Icon(Icons.check, size: 16, color: Colors.green.shade700),
+                          ])
                       ),
                     ),
                     UserAvatar(_question.user,
