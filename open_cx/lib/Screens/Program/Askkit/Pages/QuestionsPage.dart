@@ -92,11 +92,9 @@ class QuestionsPageState extends State<QuestionsPage> implements ModelListener {
     );
   }
 
-  handleDismiss(int index) async {
+  handleDismiss(Question question) async {
 
-    final swipedQuestion = questions[index];
-
-    await widget._dbcontroller.deleteQuestion(swipedQuestion);
+    await widget._dbcontroller.deleteQuestion(question);
     refreshModel(true);
 
     _scaffoldKey.currentState
@@ -108,32 +106,20 @@ class QuestionsPageState extends State<QuestionsPage> implements ModelListener {
             label: "Undo",
             textColor: Colors.yellow,
             onPressed: () async {
-              if(index > questions.length)
-                await widget._dbcontroller.addExistingQuestion(swipedQuestion);
-              else
-                await widget._dbcontroller.insertQuestion(index, swipedQuestion);
+              await widget._dbcontroller.addExistingQuestion(question);
               refreshModel(true);
             }),
       ),
     )
-        .closed
-        .then((reason) {
-      if (reason != SnackBarClosedReason.action) {
-        // The SnackBar was dismissed by some other means
-        // that's not clicking of action button
-        // Make API call to backend
-
-      }
-    });
+        .closed;
   }
 
-  questionWithDismiss(int index) {
-    Question question = questions[index];
+  questionWithDismiss(Question question) {
     if (widget._dbcontroller.getCurrentUser() == question.user) {
       return Dismissible(
         key: Key(question.content),
         onDismissed: (direction) {
-          handleDismiss(index);
+          handleDismiss(question);
         },
         background: Container(
           alignment: Alignment.centerRight,
@@ -165,7 +151,7 @@ class QuestionsPageState extends State<QuestionsPage> implements ModelListener {
           return Container(
               decoration: ShadowDecoration(shadowColor: CardTemplate.shadowColor(context), spreadRadius: 1.0, offset: Offset(0, 1)),
               margin: EdgeInsets.only(top: 10.0),
-              child: questionWithDismiss(i-1)
+              child: questionWithDismiss(questions[i-1])
           );
         }
     );

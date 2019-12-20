@@ -9,9 +9,9 @@ import '../../../../Model/User.dart';
 abstract class DatabaseController {
   Future<Question> addQuestion(Talk talk, String content);
   Future<void> addExistingQuestion(Question question);
-  Future<void> insertQuestion(int index, Question question);
 
   Future<Answer> addAnswer(Question question, String content);
+  Future<void> addExistingAnswer(Answer answer);
 
   User getCurrentUser();
   bool isAdmin();

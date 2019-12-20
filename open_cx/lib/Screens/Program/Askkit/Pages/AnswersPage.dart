@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:html';
 
 import 'package:flutter/material.dart';
 
@@ -45,6 +46,8 @@ class AnswersPageState extends State<AnswersPage> implements ModelListener {
   Timer minuteTimer;
   ScrollController scrollController;
 
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
+
   @override void initState() {
     super.initState();
     scrollController = ScrollController();
@@ -57,10 +60,15 @@ class AnswersPageState extends State<AnswersPage> implements ModelListener {
     super.dispose();
   }
 
+  int compareAnswers(Answer answer1, Answer answer2) {
+    return answer1.date.compareTo(answer2.date);
+  }
+
   Future<void> refreshModel(bool showIndicator) async {
     Stopwatch sw = Stopwatch()..start();
     setState(() { showLoadingIndicator = showIndicator; });
     await Future.wait([this.fetchQuestion(), this.fetchAnswers()]);
+    answers.sort(compareAnswers);
     if (this.mounted)
       setState(() { showLoadingIndicator = false; });
     print("Answer fetch time: " + sw.elapsed.toString());
@@ -82,6 +90,7 @@ class AnswersPageState extends State<AnswersPage> implements ModelListener {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,
         appBar: AppBar(
           title: Text("Answers",
             style: TextStyle(color: Color(0xFFFFFFFF), fontSize: 24, fontWeight: FontWeight.bold),
@@ -105,13 +114,34 @@ class AnswersPageState extends State<AnswersPage> implements ModelListener {
     );
   }
 
+  handleDismiss(Answer answer) async {
+
+    await widget._dbcontroller.deleteAnswer(answer);
+    refreshModel(true);
+
+    _scaffoldKey.currentState
+        .showSnackBar(
+      SnackBar(
+        content: Text("Deleted. Do you want to undo?"),
+        duration: Duration(seconds: 5),
+        action: SnackBarAction(
+            label: "Undo",
+            textColor: Colors.yellow,
+            onPressed: () async {
+              await widget._dbcontroller.addExistingAnswer(answer);
+              refreshModel(true);
+            }),
+      ),
+    )
+        .closed;
+  }
+
   answerWithDismiss(Answer answer) {
     if (widget._dbcontroller.getCurrentUser() == answer.user) {
       return Dismissible(
         key: Key(answer.content),
-        onDismissed: (direction) async {
-          await widget._dbcontroller.deleteAnswer(answer);
-          refreshModel(true);
+        onDismissed: (direction) {
+          handleDismiss(answer);
         },
         background: Container(
           alignment: Alignment.centerRight,

@@ -1,3 +1,5 @@
+import 'dart:html';
+
 import '../../../../Model/Answer.dart';
 import '../../../../Model/Question.dart';
 import '../../../../Model/Talk.dart';
@@ -31,6 +33,11 @@ class MyController implements DatabaseController {
   }
 
   @override
+  Future<void> addExistingAnswer(Answer answer) {
+    answers.add(answer);
+  }
+
+  @override
   Future<Question> addQuestion(Talk talk, String content) {
     questions.add(new Question(talk, currentUser, content, DateTime.now()));
     return Future.value(questions[questions.length - 1]);
@@ -39,11 +46,6 @@ class MyController implements DatabaseController {
   @override
   Future<void> addExistingQuestion(Question question) {
     questions.add(question);
-  }
-
-  @override
-  Future<void> insertQuestion(int index, Question question) {
-    questions.insert(index, question);
   }
 
   @override
