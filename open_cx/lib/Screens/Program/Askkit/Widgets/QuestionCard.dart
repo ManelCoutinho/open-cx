@@ -111,7 +111,7 @@ class QuestionCard extends CardTemplate {
   void deleteQuestion(BuildContext context) async {
     ConfirmDialog(
         title: "Are you sure?",
-        content: "This will delete your comment.",
+        content: "This will delete your question.",
         context: context,
         yesPressed: () async {
           await this._dbcontroller.deleteQuestion(_question);

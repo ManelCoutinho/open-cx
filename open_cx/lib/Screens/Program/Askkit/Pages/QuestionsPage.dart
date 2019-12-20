@@ -82,6 +82,30 @@ class QuestionsPageState extends State<QuestionsPage> implements ModelListener {
     );
   }
 
+  questionWithDismiss(Question question) {
+    if (widget._dbcontroller.getCurrentUser() == question.user) {
+      return Dismissible(
+        key: Key(question.content),
+        onDismissed: (direction) async {
+          await widget._dbcontroller.deleteQuestion(question);
+          refreshModel(true);
+        },
+        background: Container(
+          alignment: Alignment.centerRight,
+          padding: EdgeInsets.fromLTRB(0, 0, 30, 0),
+          color: Colors.red,
+          child: IconButton(
+            icon: Icon(Icons.delete),
+            iconSize: 30,
+          ),
+        ),
+        direction: DismissDirection.endToStart,
+        child: QuestionCard(this, question, true, widget._dbcontroller),
+      );
+    } else {
+      return QuestionCard(this, question, true, widget._dbcontroller);
+    }
+  }
 
   Widget questionList() {
     if (questions.length == 0 && !this.showLoadingIndicator)
@@ -96,7 +120,7 @@ class QuestionsPageState extends State<QuestionsPage> implements ModelListener {
           return Container(
               decoration: ShadowDecoration(shadowColor: CardTemplate.shadowColor(context), spreadRadius: 1.0, offset: Offset(0, 1)),
               margin: EdgeInsets.only(top: 10.0),
-              child: QuestionCard(this, this.questions[i - 1], true, widget._dbcontroller)
+              child: questionWithDismiss(this.questions[i-1])
           );
         }
     );
