@@ -36,6 +36,8 @@ class QuestionsPageState extends State<QuestionsPage> implements ModelListener {
   Timer minuteTimer;
   ScrollController scrollController;
 
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
+
   @override void initState() {
     super.initState();
     scrollController = ScrollController();
@@ -48,11 +50,18 @@ class QuestionsPageState extends State<QuestionsPage> implements ModelListener {
     super.dispose();
   }
 
+  int compareQuestions(Question question1, Question question2) {
+    if (question2.upvotes.compareTo(question1.upvotes) != 0)
+      return question2.upvotes.compareTo(question1.upvotes);
+    else
+      return question2.date.compareTo(question1.date);
+  }
+
   Future<void> refreshModel(bool showIndicator) async {
     Stopwatch sw = Stopwatch()..start();
     setState(() { showLoadingIndicator = showIndicator; });
     questions = await widget._dbcontroller.getQuestions(widget._talk);
-    questions.sort((question1, question2) => question2.upvotes.compareTo(question1.upvotes));
+    questions.sort(compareQuestions);
     if (this.mounted)
       setState(() { showLoadingIndicator = false; });
     print("Question fetch time: " + sw.elapsed.toString());
@@ -61,6 +70,7 @@ class QuestionsPageState extends State<QuestionsPage> implements ModelListener {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+        key: _scaffoldKey,
         appBar: AppBar(
             title: Text("Questions",
               style: TextStyle(color: Color(0xFFFFFFFF), fontSize: 24, fontWeight: FontWeight.bold),
@@ -82,13 +92,48 @@ class QuestionsPageState extends State<QuestionsPage> implements ModelListener {
     );
   }
 
-  questionWithDismiss(Question question) {
+  handleDismiss(int index) async {
+
+    final swipedQuestion = questions[index];
+
+    await widget._dbcontroller.deleteQuestion(swipedQuestion);
+    refreshModel(true);
+
+    _scaffoldKey.currentState
+        .showSnackBar(
+      SnackBar(
+        content: Text("Deleted. Do you want to undo?"),
+        duration: Duration(seconds: 5),
+        action: SnackBarAction(
+            label: "Undo",
+            textColor: Colors.yellow,
+            onPressed: () async {
+              if(index > questions.length)
+                await widget._dbcontroller.addExistingQuestion(swipedQuestion);
+              else
+                await widget._dbcontroller.insertQuestion(index, swipedQuestion);
+              refreshModel(true);
+            }),
+      ),
+    )
+        .closed
+        .then((reason) {
+      if (reason != SnackBarClosedReason.action) {
+        // The SnackBar was dismissed by some other means
+        // that's not clicking of action button
+        // Make API call to backend
+
+      }
+    });
+  }
+
+  questionWithDismiss(int index) {
+    Question question = questions[index];
     if (widget._dbcontroller.getCurrentUser() == question.user) {
       return Dismissible(
         key: Key(question.content),
-        onDismissed: (direction) async {
-          await widget._dbcontroller.deleteQuestion(question);
-          refreshModel(true);
+        onDismissed: (direction) {
+          handleDismiss(index);
         },
         background: Container(
           alignment: Alignment.centerRight,
@@ -120,7 +165,7 @@ class QuestionsPageState extends State<QuestionsPage> implements ModelListener {
           return Container(
               decoration: ShadowDecoration(shadowColor: CardTemplate.shadowColor(context), spreadRadius: 1.0, offset: Offset(0, 1)),
               margin: EdgeInsets.only(top: 10.0),
-              child: questionWithDismiss(this.questions[i-1])
+              child: questionWithDismiss(i-1)
           );
         }
     );

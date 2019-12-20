@@ -37,6 +37,16 @@ class MyController implements DatabaseController {
   }
 
   @override
+  Future<void> addExistingQuestion(Question question) {
+    questions.add(question);
+  }
+
+  @override
+  Future<void> insertQuestion(int index, Question question) {
+    questions.insert(index, question);
+  }
+
+  @override
   Future<void> deleteAnswer(Answer answer) {
     answers.remove(answer);
   }
